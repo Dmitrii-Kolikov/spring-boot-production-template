@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: spring-boot-production-template
+  jackson:
+    default-property-inclusion: NON_NULL
+
+server:
+  port: 8080
+  forward-headers-strategy: NONE
+  servlet:
+    context-path: /spring-boot-production-template
