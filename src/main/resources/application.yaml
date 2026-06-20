@@ -9,3 +9,14 @@ server:
   forward-headers-strategy: NONE
   servlet:
     context-path: /spring-boot-production-template
+
+rest:
+  logging:
+    enabled: true
+  masking:
+    enabled: true
+  max:
+    loggable:
+      size: 409600
+
+db.logging.enabled: true
