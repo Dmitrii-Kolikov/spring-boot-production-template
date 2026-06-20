@@ -12,6 +12,7 @@ class FeatureServiceTest {
     fun get_feature_service_success_test() {
         val result = featureService.getFeature()
 
-        assertEquals("Feature api", result)
+        assertEquals(1, result.id)
+        assertEquals("Важная встреча с клиентом", result.description)
     }
 }

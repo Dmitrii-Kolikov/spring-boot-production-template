@@ -9,3 +9,6 @@ server:
   forward-headers-strategy: NONE
   servlet:
     context-path: /spring-boot-production-template
+
+rest.logging.enabled: true
+rest.masking.enabled: true
