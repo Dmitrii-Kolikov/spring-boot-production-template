@@ -40,7 +40,7 @@ enum class MaskType {
      * Любой номер мобильного телефона -> 790321399**
      */
     PHONE {
-        override fun mask(value: String): String = if (value.length <= 2) "**" else "****" + value.substring(0, value.length - 2) + "**"
+        override fun mask(value: String): String = if (value.length <= 2) "**" else value.substring(0, value.length - 2) + "**"
     };
 
     abstract fun mask(value: String): String

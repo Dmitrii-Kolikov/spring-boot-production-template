@@ -30,20 +30,4 @@ class CachedBodyHttpServletRequest(request: HttpServletRequest) : HttpServletReq
         val inputStream = this.inputStream
         return BufferedReader(InputStreamReader(inputStream, characterEncoding ?: "UTF-8"))
     }
-
-    fun getBody(): String? {
-        return cachedBody.takeIf { it.isNotEmpty() }?.let {
-            val raw = String(cachedBody, charset(characterEncoding ?: "UTF-8"))
-            val sb = StringBuilder(raw.length)
-
-            raw.splitToSequence('\n').forEach { line ->
-                val trimmed = line.trim()
-                if (trimmed.isNotEmpty()) {
-                    if (sb.isNotEmpty()) sb.append(" ")
-                    sb.append(trimmed)
-                }
-            }
-            return sb.toString().takeIf { it.isNotBlank() }
-        }
-    }
 }
