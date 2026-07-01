@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "com.spring.boot.production.template.api.dto.rest.FeatureModelRq",
+  "description": "Запрос",
+  "additionalProperties": true,
+  "required": [
+    "description"
+  ],
+  "properties": {
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": ["Важная встреча с клиентом"],
+      "description": "Описание встречи"
+    }
+  }
+}
