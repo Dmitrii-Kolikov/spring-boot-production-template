@@ -60,7 +60,7 @@ class DbCompactLoggingListener(
             val tableName = getTableName(joinPoint)
             val methodName = joinPoint.signature.name
             val executionTime = System.currentTimeMillis() - startTime
-            val rowsCount = getRowsCount(result)
+            val rowsCount = getRowsCount(result, methodName)
             log.info(stringDbCallFormat, tableName, methodName, executionTime, uuid, rowsCount, "SUCCESS")
             result
         } catch (throwable: Throwable) {
@@ -94,12 +94,15 @@ class DbCompactLoggingListener(
         }
     }
 
-    private fun getRowsCount(result: Any?): String {
+    private fun getRowsCount(result: Any?, methodName: String): String {
         if (result == null) return "0"
 
         return when (result) {
             // Для методов, которые ничего не возвращают (flush, deleteById, void-процедуры)
-            is Unit -> "—"
+            is Unit -> {
+                if (methodName.startsWith("delete")) "(Удалено / Flush)"
+                else "(Сброс буфера / Flush)"
+            }
 
             // Если вернулся ByteArray — это всегда 1 бинарный объект (файл/картинка)
             is ByteArray -> "1"

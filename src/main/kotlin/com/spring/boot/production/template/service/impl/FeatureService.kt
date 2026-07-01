@@ -1,7 +1,7 @@
 package com.spring.boot.production.template.service.impl
 
-import com.spring.boot.production.template.model.FeatureModelRq
-import com.spring.boot.production.template.model.FeatureModelRs
+import com.spring.boot.production.template.api.dto.rest.FeatureModelRqDto
+import com.spring.boot.production.template.api.dto.rest.FeatureModelRsDto
 import com.spring.boot.production.template.model.entity.FeatureEntity
 import com.spring.boot.production.template.repository.FeatureRepository
 import com.spring.boot.production.template.service.api.IFeatureService
@@ -16,23 +16,32 @@ class FeatureService(
     private val featureRepository: FeatureRepository
 ): IFeatureService {
 
-    override fun getFeature(id: Long): FeatureModelRs {
-        val rs = featureRepository.findByIdOrNull(id)
-        return FeatureModelRs(rs?.id, rs?.description)
+    override fun getFeature(meetingId: Long): FeatureModelRsDto {
+        val rs = featureRepository.findByIdOrNull(meetingId)
+        return FeatureModelRsDto().apply {
+            id = rs?.id
+            description = rs?.description
+        }
     }
 
-    override suspend fun getFeatureAsync(): FeatureModelRs {
+    override suspend fun getFeatureAsync(): FeatureModelRsDto {
         return coroutineScope {
             withContextIO {
                 delay(2000)
             }
-            FeatureModelRs(1, "Важная встреча с клиентом")
+            FeatureModelRsDto().apply {
+                id = 1
+                description = "Важная встреча с клиентом"
+            }
         }
     }
 
-    override fun createFeature(rq: FeatureModelRq): FeatureModelRs {
+    override fun createFeature(rq: FeatureModelRqDto): FeatureModelRsDto {
         val entityRq = FeatureEntity(description = rq.description)
         val rs = featureRepository.saveAndFlush(entityRq)
-        return FeatureModelRs(rs.id, rs.description)
+        return FeatureModelRsDto().apply {
+            id = rs.id
+            description = rs.description
+        }
     }
 }
