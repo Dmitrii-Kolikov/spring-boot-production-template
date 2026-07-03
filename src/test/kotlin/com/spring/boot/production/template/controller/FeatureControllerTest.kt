@@ -1,9 +1,10 @@
 package com.spring.boot.production.template.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.spring.boot.production.template.api.dto.rest.FeatureModelRqDto
 import com.spring.boot.production.template.api.dto.rest.FeatureModelRsDto
+import com.spring.boot.production.template.config.header.Headers
 import com.spring.boot.production.template.service.api.IFeatureService
+import com.spring.boot.production.template.utils.UtilsTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.assertj.MockMvcTester
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import java.util.UUID
 
 @WebMvcTest(FeatureController::class)
 class FeatureControllerTest {
@@ -25,7 +27,7 @@ class FeatureControllerTest {
     @MockitoBean
     private lateinit var featureService: IFeatureService
 
-    private val objectMapper = ObjectMapper()
+    private val objectMapper = UtilsTest.jacksonObjectMapperMock()
 
     @Nested
     inner class GetFeatureControllerTest {
@@ -39,6 +41,8 @@ class FeatureControllerTest {
             )
 
             mockMvc.get().uri("/v1/features/feature/{meetingId}", 1)
+                .header(Headers.REQUEST_CHAIN_ID_HTTP_HEADER, UUID.randomUUID().toString())
+                .header(Headers.SOURCE_SYSTEM, "example")
                 .assertThat()
                 .hasStatusOk()
                 .matches(jsonPath("$.status").value(true))
@@ -55,6 +59,8 @@ class FeatureControllerTest {
             )
 
             mockMvc.get().uri("/v1/features/feature/{id}", 1)
+                .header(Headers.REQUEST_CHAIN_ID_HTTP_HEADER, UUID.randomUUID().toString())
+                .header(Headers.SOURCE_SYSTEM, "example")
                 .assertThat()
                 .hasStatus(HttpStatus.BAD_REQUEST)
                 .matches(jsonPath("$.status").value(false))
@@ -81,6 +87,8 @@ class FeatureControllerTest {
 
             mockMvc.post()
                 .uri("/v1/features/feature/create")
+                .header(Headers.REQUEST_CHAIN_ID_HTTP_HEADER, UUID.randomUUID().toString())
+                .header(Headers.SOURCE_SYSTEM, "example")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestBody))
                 .assertThat()
@@ -105,6 +113,8 @@ class FeatureControllerTest {
             mockMvc.post()
                 .uri("/v1/features/feature/create")
                 .contentType(MediaType.APPLICATION_JSON)
+                .header(Headers.REQUEST_CHAIN_ID_HTTP_HEADER, UUID.randomUUID().toString())
+                .header(Headers.SOURCE_SYSTEM, "example")
                 .content(objectMapper.writeValueAsString(requestBody))
                 .assertThat()
                 .hasStatus(HttpStatus.BAD_REQUEST)

@@ -2,9 +2,9 @@ package com.spring.boot.production.template.controller
 
 import com.spring.boot.production.template.api.dto.rest.FeatureModelRqDto
 import com.spring.boot.production.template.api.dto.rest.FeatureModelRsDto
-import com.spring.boot.production.template.logging.mask.LogMask
-import com.spring.boot.production.template.logging.mask.MaskField
-import com.spring.boot.production.template.logging.mask.MaskType
+import com.spring.boot.production.template.config.logging.mask.LogMask
+import com.spring.boot.production.template.config.logging.mask.MaskField
+import com.spring.boot.production.template.config.logging.mask.MaskType
 import com.spring.boot.production.template.model.BaseResponse
 import com.spring.boot.production.template.service.api.IFeatureService
 import jakarta.validation.Valid

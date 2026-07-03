@@ -3,7 +3,7 @@
   "type": "object",
   "javaType": "com.spring.boot.production.template.api.dto.integration.FeatureIntegrationModelRq",
   "description": "Запрос",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "required": [
     "description"
   ],

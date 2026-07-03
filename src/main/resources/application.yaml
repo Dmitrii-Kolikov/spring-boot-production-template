@@ -3,6 +3,8 @@ spring:
     name: spring-boot-production-template
   jackson:
     default-property-inclusion: NON_NULL
+    deserialization:
+      fail-on-unknown-properties: false
 
 server:
   port: 8080
@@ -15,6 +17,17 @@ rest:
     enabled: true
   masking:
     enabled: true
+  max:
+    loggable:
+      size: 409600
+
+feign:
+  logging:
+    enabled: true
+  masking:
+    enabled: true
+  short:
+    logs: true
   max:
     loggable:
       size: 409600
