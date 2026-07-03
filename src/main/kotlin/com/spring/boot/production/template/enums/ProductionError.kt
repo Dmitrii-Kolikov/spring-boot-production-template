@@ -6,6 +6,6 @@ enum class ProductionError(
 ) {
     TECHNICAL_ERROR("IP-001", "Техническая ошибка"),
     VALIDATION_ERROR("IP-002", "Ошибка валидации запроса или ответа"),
-    HEADER_VALIDATION_ERROR("IP-003", "Не заполнены значения заголовка %s"),
+    HEADER_VALIDATION_ERROR("IP-003", "Не заполнены значения заголовка"),
     DATABASE_ERROR("IP-004", "Ошибка выполнения запроса к БД")
 }
