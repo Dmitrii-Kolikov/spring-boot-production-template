@@ -71,8 +71,8 @@ class RestLoggingFilter(
              RESPONSE STATUS: {}
              RESPONSE HEADERS: {}
              REST_ID: {}
-             EXECUTION TIME: {} ms
              RESPONSE BODY: {}
+             EXECUTION TIME: {} ms
             **************************************************** 
         """.trimIndent()
     }
@@ -173,7 +173,7 @@ class RestLoggingFilter(
 
     private fun logResponse(request: HttpServletRequest, response: ContentCachingResponseWrapper, executionTime: Long, body: String?) {
         val headers = response.headerNames.associateWith { response.getHeader(it).orEmpty() }
-        log.info(RESPONSE_FORMAT, request.method, request.requestURI, response.status, headers, request.getHeader(Headers.REQUEST_CHAIN_ID_HTTP_HEADER), executionTime, body)
+        log.info(RESPONSE_FORMAT, request.method, request.requestURI, response.status, headers, request.getHeader(Headers.REQUEST_CHAIN_ID_HTTP_HEADER), body, executionTime)
     }
 
     private fun processPayload(bytes: ByteArray?, maskFields: Array<MaskField>?): String? {
