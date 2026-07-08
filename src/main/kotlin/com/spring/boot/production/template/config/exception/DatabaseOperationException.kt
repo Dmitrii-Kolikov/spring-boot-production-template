@@ -1,0 +1,10 @@
+package com.spring.boot.production.template.config.exception
+
+class DatabaseOperationException(
+    val code: String? = null,
+    val title: String? = null,
+    val subCode: String? = null,
+    val description: String? = null,
+    val rqUid: String? = null,
+    val timestamp: String? = null,
+) : RuntimeException()
