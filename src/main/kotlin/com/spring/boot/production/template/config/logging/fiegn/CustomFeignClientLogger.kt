@@ -52,6 +52,7 @@ class CustomFeignClientLogger(
              RESPONSE STATUS: {}
              RESPONSE HEADERS: {}
              RESPONSE BODY: {}
+             EXECUTION TIME: {} ms
             ***************************************************  
         """.trimIndent()
     }
@@ -60,7 +61,7 @@ class CustomFeignClientLogger(
         // Намеренно пусто. Логируем запрос и ответ вместе в методе logAndRebufferResponse
     }
 
-    override fun logAndRebufferResponse(configKey: String?, logLevel: Level?, response: Response, elapsedTime: Long): Response? {
+    override fun logAndRebufferResponse(configKey: String?, logLevel: Level?, response: Response, elapsedTime: Long): Response {
         if (!isFeignLoggingEnabled) {
             return response
         }
@@ -127,7 +128,8 @@ class CustomFeignClientLogger(
             requestBody,
             response.status(),
             response.headers(),
-            responseBody
+            responseBody,
+            elapsedTime
         )
 
         return bodyData?.let { response.toBuilder().body(it).build() } ?: response
