@@ -1,6 +1,35 @@
 # 🛠️ rgs-boot-production-template
 
 ---
+## ⏰ Работа с часовыми поясами (DateTime Architecture)
+
+В проекте реализован сквозной изолированный UTC-канал для работы с датами и временем. Система спроектирована по принципу: **«Храним и передаем в UTC (Гринвич) — отображаем там, где удобно пользователю»**.
+
+### ⚙️ Спецификация работы с временными зонами
+* **Изоляция бэкенда (UTC-туннель)**: Благодаря свойству `spring.jpa.properties.hibernate.jdbc.time_zone=UTC`, Hibernate принудительно общается с базой данных только по Гринвичу, полностью игнорируя локальные настройки сервера приложений или сервера БД.
+* **Строгая типизация данных**: На уровне Kotlin-сущностей запрещено использование `LocalDateTime` (отсекающего зоны). Все временные точки объявляются как `OffsetDateTime` или `Instant`, а новые даты генерируются строго через бекенд (`OffsetDateTime.now(ZoneOffset.UTC)`), исключая использование `DEFAULT CURRENT_TIMESTSMPT` на стороне СУБД.
+* **Универсальное хранение и индексация**: B PostgreSQL используется тип `TIMESTAMP WITH TIME ZONE`. На диске данные всегда лежат в UTC, что обеспечивает прямое и максимально быстрое сравнение по B-Tree индексам без накладных расходов на конвертацию. 
+* **Локализация отображения (DBeaver / pgAdmin)**: База данных автоматически подстраивает отображение дат под конкретного разработчика. Изменение часового пояса сессии (например, через команду `SET TIME ZONE 'Asia/Yekaterinburg'`) безопасно, изолировано и меняет картинку только на мониторе запустившего ее человека, не влияя на коллег и бэкенд.
+
+### 🔄 Жизненный цикл данных (Data Flow)
+
+Ниже описан эталонный путь прохождения временной точки (на примере создания встречи пользователем из Владивостока, у которого на часах `23:00`):
+
+1. **Фронтенд (Браузер пользователя, UTC+10)**:
+   Библиотеки фронтенда переводят локальное время (`23:00`) в Гринвич и отправляют в REST-слой бэкенда ISO-строку:
+   `"2026-07-01T13:00:00Z"`
+2. **Бэкенд (Spring / Kotlin Controller)**:
+   Строка десериализуется в объект `OffsetDateTime` (или `Instant`). Бәкенд видит чистую точку на временной шкале:
+   `2026-07-01T13:00:00.000Z`
+3. **Слой данных (Hibernate / JDBC)**:
+   При сохранении сущности срабатывает настройка `time_zone=UTC`. Драйвер передает значение в базу «один к одному», исключая влияние локального времени самого сервера.
+4. **СУБД (PostgreSQL, TIMESTAMPTZ)**:
+   База принимает данные и записывает на диск эталонные **`13:00:00`**, 
+5. **Анализ данных (DBeaver / pgAdmin)**:
+   * Разработчик из **Москвы** делает `SELECT` и видит: `16:00:00+03`
+   * Разработчик из **Екатеринбурга** (выполнив `SET TIME ZONE 'Asia/Yekaterinburg`) видит: `18:00:00+05`
+   * При этом физические данные на диске и логика бэкенда остаются **нетронутыми**.
+---
 ## 📥 REST-слой: Логирование, Маскирование и Валидация
 
 Для автоматического контроля, логирования и защиты входящего REST-трафика используется специализированный компонент **`RestLoggingFilter`** (компонент `OncePerRequestFilter` с наивысшим приоритетом выполнения).
@@ -38,13 +67,19 @@
 
 ### 🛠️ Инструкция для разработчиков
 
-При написании кода в слое БД следуйте четырем железным правилам:
+При написании кода в слое БД следуйте железным правилам:
 
-* **Для создания новых записей (`INSERT`)**  
+* **Для создания новых записей (`INSERT`)**
   Используйте `repository.saveAndFlush(newEntity)`.
 
-* **Для пакетных операций (`Batch INSERT/UPDATE`)**  
+* **Для обновления существующих записей (`UPDATE`)**
+  Изменяйте поля Managed — объекта прямо в памяти (мутация «на месте») и сразу после этого вызывайте `repository.flush()`.
+
+* **Для пакетных операций небольшого объема (`Batch INSERT/UPDATE` до 20 записей)**  
   Сначала наполняйте списки или вызывайте `repository.saveAll(listOfEntities)`, и строго после этого делайте один общий `repository.flush()` для фиксации батча.
+
+* **Для пакетных операций большого объема (`Batch INSERT/UPDATE` свыше 20 записей)**  
+  При обработке больших массивов данных включается адаптивный пакетный режим **Smart Chunking**. Список данных нарезается в коде на пачки строго по 50 элеметов (через `.chunked(50)`), и каждая пачка коммитится изолированно с помощью `@Transactional(propagation = Propagation.REQUIRES_NEW)`. Это защищает базу от долгих блокировок строк (*Locks/Deadlocks*), а память приложения — от перегрузки.
 
 * **Запрет на использование `.copy()` при обновлениях**  
   При изменении сущностей **нельзя** использовать метод `.copy()` у Kotlin Data-классов. Метод `.copy()` создаёт абсолютно новый объект в памяти. Из-за этого объект вылетает из контекста Hibernate (становится Detached), ломается оптимизация `@DynamicUpdate`, и Hibernate выполняет лишний скрытый `SELECT`, перезаписывая абсолютно все колонки таблицы целиком.
@@ -58,14 +93,14 @@
 val position = positionsRepository.findByIdOrNull(id)
 if (position != null) {
     // 1. Меняем поля существующего объекта (мутация на месте)
-    position.toUpdatePositionFromIndividualUpdate(rq, regionCode, rs) 
+    position.toUpdatePositionFromIndividualUpdate(rq, regionCode, rs)
     
     // 2. Явный пуш в базу + честный замер времени аспект-логгером
-    positionsRepository.flush()         
+    positionsRepository.flush()
 }
 ```
 
-#### 2. Правильная работа со списками (Batch)
+#### 2. Правильная работа со списками (Batch до 20 записей)
 ```kotlin
 val employeesToSave = mutableListOf<EmployeeEntity>()
 
@@ -80,11 +115,49 @@ rs.employee.forEach { dto ->
 
 // Если были новые записи - передаем их в saveAll
 if (employeesToSave.isNotEmpty()) {
-    employeeRepository.saveAll(employeesToSave) 
+    employeeRepository.saveAll(employeesToSave)
 }
 
 // Один общий flush на весь блок для экономии ресурсов и красивого лога
-employeeRepository.flush() 
+employeeRepository.flush()
+```
+
+#### 2. Адаптивная пакетная обработка больших списков (Batch свыше 20 записей)
+
+**Логика ветвления в вызывающем коде (вне контекста текущей транзакции):**
+```kotlin
+employeeList.chunked(50).forEach { batchList ->
+    employeeService.saveSingleBatch(batchList)
+}
+```
+
+**Реализация в Сервисе (Паттерн Fetch -> Modify -> Flush):**
+```kotlin
+//
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+override fun saveSingleBatch(employees: List<EmployeeDto>) {
+    if (employees.isEmpty()) return
+    
+    //Собираем все ID из пришедшей пачки DTO
+    val ids = employees.mapNotNull { it.id }
+    
+    // 1. Fetch: Выгружаем сущности за 1 запрос через IN. Теперь они Managed
+    val employeesFromDb = employeeRepository.findByAllId(ids)
+    
+    //Создаем быструю мапу для поиска personalNumber
+    val personalNumberMap = employees.associateBy { it.id to it.personalNumber }
+
+    // 2. Modify: Идем строго по списку записей из БД и меняем значения на месте (без .copy())
+    employeesFromDb.forEach { entity ->
+        val personalNumber = personalNumberMap[entity.id]
+        if (personalNumber != null) {
+            entity.personalNumber = personalNumber
+        }
+    }
+
+    // 3. Flush: Явно отправляем изменения в БД.
+    employeeRepository.flush()
+}
 ```
 ---
 
