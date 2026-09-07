@@ -73,7 +73,7 @@ class DbCompactLoggingListener(
 
             throw DatabaseOperationException(
                 code = ProductionError.DATABASE_ERROR.code,
-                title = ProductionError.DATABASE_ERROR.title,
+                title = ProductionError.DATABASE_ERROR.title.format(tableName),
                 timestamp = Utils.rqTm(),
                 rqUid = uuid,
                 description = "Ошибка выполнения запроса к БД [$tableName] в методе $methodName() (время выполнения $executionTime мс). Ошибка: $originalMessage"

@@ -13,7 +13,7 @@ object JsonStreamMasker {
     private val pathCache = ConcurrentHashMap<String, JsonPath>()
 
     fun mask(body: String?, maskFields: Array<MaskField>?): String? {
-        if (body.isNullOrBlank() || maskFields.isNullOrEmpty()) {
+        if (body.isNullOrBlank() || !isJson(body) || maskFields.isNullOrEmpty()) {
             return body
         }
 
@@ -33,5 +33,11 @@ object JsonStreamMasker {
             log.error("Ошибка маскирования JSON лога: ${ex.message}", ex)
             body
         }
+    }
+
+    private fun isJson(body: String): Boolean {
+        val trimmedBody = body.trimStart()
+        return (trimmedBody.startsWith("{") && trimmedBody.endsWith("}")) ||
+                (trimmedBody.startsWith("[") && trimmedBody.endsWith("]"))
     }
 }
