@@ -1,12 +1,13 @@
 package com.spring.boot.production.template.repository.feign
 
-import com.spring.boot.production.template.api.dto.integration.FeatureIntegrationModelRsDto
+import com.spring.boot.production.template.api.dto.integration.FeatureIntegrationModelRqDto
 import com.spring.boot.production.template.config.exception.feature.ProductionErrorDecoder
 import com.spring.boot.production.template.config.header.Headers
 import com.spring.boot.production.template.config.logging.fiegn.CustomFeignClientLogger
 import com.spring.boot.production.template.utils.StubDecoderTest
 import com.spring.boot.production.template.utils.StubEncoderTest
 import com.spring.boot.production.template.utils.UtilsTest
+import com.spring.boot.production.template.utils.UtilsTest.Companion.readJsonResource
 import feign.Feign
 import feign.Logger
 import okhttp3.mockwebserver.MockResponse
@@ -46,23 +47,37 @@ class ProductionClientTest {
 
     @Test
     fun get_meeting_repository_test() {
-        val responseBody = FeatureIntegrationModelRsDto().apply {
-            id = 1
-            description = "Важная встреча с клиентом"
-        }
-
         mockWebServer.enqueue(
             MockResponse()
-                .setBody(objectMapper.writeValueAsString(responseBody))
+                .setBody("{\"id\":10000000000166982,\"description\":\"Важная встреча с клиентом\"}")
                 .setHeader("Content-Type", "application/json")
                 .setHeader(Headers.REQUEST_CHAIN_ID_HTTP_HEADER, UUID.randomUUID().toString())
                 .setHeader(Headers.SOURCE_SYSTEM, "example")
                 .setResponseCode(200)
         )
 
-        val result = productionClient.getMeeting("1")
+        val result = productionClient.getMeeting(10000000000166982L)
         assertNotNull(result)
-        assertEquals(1, result.id)
+        assertEquals(10000000000166982, result.id)
+        assertEquals("Важная встреча с клиентом", result.description)
+    }
+
+    @Test
+    fun create_meeting_repository_test() {
+        val request: FeatureIntegrationModelRqDto = objectMapper.readJsonResource("json/FeatureIntegrationModelRq.json")
+
+        mockWebServer.enqueue(
+            MockResponse()
+                .setBody("{\"id\":10000000000166982,\"description\":\"Важная встреча с клиентом\"}")
+                .setHeader("Content-Type", "application/json")
+                .setHeader(Headers.REQUEST_CHAIN_ID_HTTP_HEADER, UUID.randomUUID().toString())
+                .setHeader(Headers.SOURCE_SYSTEM, "example")
+                .setResponseCode(200)
+        )
+
+        val result = productionClient.createMeeting(request)
+        assertNotNull(result)
+        assertEquals(10000000000166982, result.id)
         assertEquals("Важная встреча с клиентом", result.description)
     }
 }
