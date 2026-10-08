@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "javaType": "com.spring.boot.production.template.api.dto.rest.FeatureModelListRs",
+  "description": "Ответ",
+  "additionalProperties": true,
+  "properties": {
+    "meetings": {
+      "type": "array",
+      "description": "Массив данных об встречах",
+      "items": {
+        "type": "object",
+        "description": "Данных об встрече",
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "examples": [1],
+            "description": "Идентификатор встречи",
+            "existingJavaType": "java.lang.Long"
+          },
+          "meetingId": {
+            "type": "integer",
+            "examples": [1],
+            "description": "Идентификатор встречи",
+            "existingJavaType": "java.lang.Long"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "examples": ["Важная встреча с клиентом"],
+            "description": "Описание встречи"
+          }
+
+        }
+      }
+    },
+    "errorMeetings": {
+      "type": "array",
+      "description": "Массив данных об встречах",
+      "items": {
+        "type": "object",
+        "description": "Данных об встрече",
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "examples": ["Важная встреча с клиентом"],
+            "description": "Описание встречи"
+          },
+          "errorDescription": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "examples": ["Важная встреча с клиентом"],
+            "description": "Описание встречи"
+          }
+        }
+      }
+    }
+  }
+}

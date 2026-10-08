@@ -1,5 +1,7 @@
 package com.spring.boot.production.template.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.slf4j.MDCContext
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -13,4 +15,5 @@ object Utils {
     fun rqTm(): String = OffsetDateTime.now(MOSCOW_ZONE).format(RQ_TM_FORMATER)
     fun getCurrentUtcOffsetDateTime(): OffsetDateTime = OffsetDateTime.now(ZoneOffset.UTC)
     fun getCurrentUtcLocalDate(): LocalDate = LocalDate.now(ZoneOffset.UTC)
+    fun context() = Dispatchers.IO.plus(MDCContext())
 }

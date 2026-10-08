@@ -19,6 +19,7 @@ class ProductionRepositoryTest {
 
         assertEquals(1, productionRepositoryRs.size)
         assertEquals(1, productionRepositoryRs[0].id)
+        assertEquals(10000000000166982, productionRepositoryRs[0].meetingId)
         assertEquals("Важная встреча с клиентом", productionRepositoryRs[0].description)
     }
 }

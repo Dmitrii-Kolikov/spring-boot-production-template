@@ -1,5 +1,7 @@
 package com.spring.boot.production.template.controller
 
+import com.spring.boot.production.template.api.dto.rest.FeatureModelListRqDto
+import com.spring.boot.production.template.api.dto.rest.FeatureModelListRsDto
 import com.spring.boot.production.template.api.dto.rest.FeatureModelRqDto
 import com.spring.boot.production.template.api.dto.rest.FeatureModelRsDto
 import com.spring.boot.production.template.config.logging.mask.LogMask
@@ -26,29 +28,33 @@ class FeatureController(
     @Valid
     @LogMask(
         fields = [
-            MaskField(name = "\$.body.description", MaskType.DESCRIPTION),
+            MaskField(name = "\$.description", MaskType.DESCRIPTION),
+            MaskField(name = "\$.body.description", MaskType.DESCRIPTION)
         ]
     )
     fun getFeature(@PathVariable meetingId: Long): BaseResponse<FeatureModelRsDto> {
         return BaseResponse(true, featureService.getFeature(meetingId), null)
     }
 
-    @GetMapping(value = ["/feature/async"])
+    @PostMapping(value = ["/feature/async"])
     @Valid
     @LogMask(
         fields = [
             MaskField(name = "\$.body.description", MaskType.DESCRIPTION),
+            MaskField(name = "\$.body.description", MaskType.DESCRIPTION)
         ]
     )
-    suspend fun getFeatureAsync(): BaseResponse<FeatureModelRsDto> {
-        return  BaseResponse(true, featureService.getFeatureAsync(), null)
+    suspend fun createFeatureAsync(@Valid @RequestBody rq: FeatureModelListRqDto): BaseResponse<FeatureModelListRsDto> {
+        return  BaseResponse(true, featureService.createFeatureAsync(rq), null)
     }
 
     @PostMapping(value = ["/feature/create"])
     @Valid
     @LogMask(
         fields = [
-            MaskField(name = "\$.body.description", MaskType.DESCRIPTION),
+            MaskField(name = "\$.descriptions", MaskType.DESCRIPTION),
+            MaskField(name = "\$.body.meetings[*].description", MaskType.DESCRIPTION),
+            MaskField(name = "\$.body.errorMeetings[*].description", MaskType.DESCRIPTION)
         ]
     )
     fun createFeature(@Valid @RequestBody rq: FeatureModelRqDto): BaseResponse<FeatureModelRsDto> {
