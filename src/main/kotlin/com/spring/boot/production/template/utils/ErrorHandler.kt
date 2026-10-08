@@ -8,27 +8,29 @@ import com.spring.boot.production.template.enums.ProductionError
 import feign.Request
 import org.slf4j.MDC
 
-fun <T> handlerException(error: ProductionError, block: () -> T): T  {
+inline fun <T> handlerException(error: ProductionError, block: () -> T): T  {
     return runCatching { block() }
-        .getOrElse {
-            when (it) {
-                is ProductionException -> throw BusinessException(
-                    code = error.code,
-                    title = error.title,
-                    subCode = it.subCode,
-                    description = it.description,
-                    rqUid = it.request.toRqUid(),
-                    timestamp = it.request.toTimestamp()
-                )
-                else -> throw TechnicalException(
-                    code = error.code,
-                    title = error.title,
-                    subCode = ProductionError.TECHNICAL_ERROR.code,
-                    description = "${ProductionError.TECHNICAL_ERROR.title} ${it.localizedMessage}",
-                    rqUid = MDC.get(Headers.REQUEST_CHAIN_ID_HTTP_HEADER)
-                )
-            }
-        }
+        .getOrElse { throw mapToTargetException(error, it) }
+}
+
+fun mapToTargetException(error: ProductionError, it: Throwable): Throwable {
+    return when (it) {
+        is ProductionException -> BusinessException(
+            code = error.code,
+            title = error.title,
+            subCode = it.subCode,
+            description = it.description,
+            rqUid = it.request.toRqUid(),
+            timestamp = it.request.toTimestamp()
+        )
+        else -> TechnicalException(
+            code = error.code,
+            title = error.title,
+            subCode = ProductionError.TECHNICAL_ERROR.code,
+            description = "${ProductionError.TECHNICAL_ERROR.title} ${it.localizedMessage}",
+            rqUid = MDC.get(Headers.REQUEST_CHAIN_ID_HTTP_HEADER)
+        )
+    }
 }
 
 fun Request.toRqUid(): String? = this.headers()[Headers.REQUEST_CHAIN_ID_HTTP_HEADER]?.firstOrNull()

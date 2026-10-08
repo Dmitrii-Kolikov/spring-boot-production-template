@@ -3,13 +3,19 @@
   "type": "object",
   "javaType": "com.spring.boot.production.template.api.dto.rest.FeatureModelRs",
   "description": "Ответ",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "required": [
     "id",
     "description"
   ],
   "properties": {
     "id": {
+      "type": "integer",
+      "examples": [1],
+      "description": "Идентификатор встречи",
+      "existingJavaType": "java.lang.Long"
+    },
+    "meetingId": {
       "type": "integer",
       "examples": [1],
       "description": "Идентификатор встречи",

@@ -22,7 +22,7 @@ interface ProductionClient {
         ]
     )
     @GetMapping("feature/{meetingId}/detail")
-    fun getMeeting(@PathVariable("meetingId") meetingId: String): FeatureIntegrationModelRsDto
+    fun getMeeting(@PathVariable meetingId: Long): FeatureIntegrationModelRsDto
 
     @LogMask(
         fields = [

@@ -13,8 +13,11 @@ class FeatureEntity(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    var id: Long? = null,
+
+    @Column(name = "meeting_id", nullable = false)
+    var meetingId: Long? = null,
 
     @Column(name = "description", nullable = false)
-    val description: String? = null
+    var description: String? = null
 )
