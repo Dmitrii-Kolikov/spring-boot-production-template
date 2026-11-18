@@ -1,4 +1,4 @@
-# 🛠️ rgs-boot-production-template
+# 🛠️ spring-boot-production-template
 
 ---
 ## ⏰ Работа с часовыми поясами (DateTime Architecture)
